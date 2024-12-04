@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计时器</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .timer { font-size: 2em; margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 1em; margin: 5px; cursor: pointer; }
+        .stats { margin-top: 30px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+<h1>计时器</h1>
+<div class="timer" id="timer">00:00:00</div>
+
+<div>
+    <button id="startBtn">开始</button>
+    <button id="pauseBtn" disabled>暂停</button>
+    <button id="resumeBtn" disabled>继续</button>
+</div>
+
+<div class="stats">
+    <h2>统计概览</h2>
+    <ul id="statsList">
+        <!-- 计时数据列表 -->
+    </ul>
+</div>
+
+<script>
+    let timerInterval;
+    let seconds = 0;
+    let startTime;
+    let running = false;
+    let records = [];
+
+    function formatTime(seconds) {
+        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(seconds % 60).padStart(2, '0');
+        return `${hours}:${minutes}:${secs}`;
+    }
+
+    function updateTimerDisplay() {
+        document.getElementById("timer").textContent = formatTime(seconds);
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+        if (!running) {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                seconds = Math.floor((Date.now() - startTime) / 1000);
+                updateTimerDisplay();
+            }, 1000);
+
+            running = true;
+            document.getElementById("startBtn").disabled = true;
+            document.getElementById("pauseBtn").disabled = false;
+            document.getElementById("resumeBtn").disabled = true;
+        }
+    });
+
+    document.getElementById("pauseBtn").addEventListener("click", () => {
+        clearInterval(timerInterval);
+        running = false;
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("pauseBtn").disabled = true;
+        document.getElementById("resumeBtn").disabled = false;
+
+        const record = {
+            date: new Date().toLocaleString(),
+            duration: seconds
+        };
+        records.push(record);
+        updateStats();
+    });
+
+    document.getElementById("resumeBtn").addEventListener("click", () => {
+        startTime = Date.now() - seconds * 1000;
+        timerInterval = setInterval(() => {
+            seconds = Math.floor((Date.now() - startTime) / 1000);
+            updateTimerDisplay();
+        }, 1000);
+
+        running = true;
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("pauseBtn").disabled = false;
+        document.getElementById("resumeBtn").disabled = true;
+    });
+
+    function updateStats() {
+        const statsList = document.getElementById("statsList");
+        statsList.innerHTML = '';
+        records.forEach(record => {
+            const listItem = document.createElement("li");
+            listItem.textContent = `日期：${record.date}, 时长：${formatTime(record.duration)}`;
+            statsList.appendChild(listItem);
+        });
+    }
+</script>
+
+</body>
+</html>
